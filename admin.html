@@ -526,23 +526,38 @@
 
           const disMod = isRaceLocked ? "disabled style='opacity:0.5; cursor:not-allowed;'" : "";
 
+          // APPLYING THE FIX: Wrapping inner contents in divs so td keeps normal behavior
           tbody.innerHTML += `<tr>
               <td class="team-name">${team.name}</td>
-              <td class="timer-display" id="raceTime_${team.id}" style="color: ${timerColor};">${rawTimeDisplay}</td>
-              <td>${raceControls}</td>
-              <td class="mod-controls">
-                  <button class="btn-green mod-btn" ${disMod} onclick="addModifier('${team.id}', 'points')">
-                      + PT <span class="mod-count">${team.points || 0}</span>
-                  </button>
-                  <button class="btn-orange mod-btn" ${disMod} onclick="addModifier('${team.id}', 'obstacles')">
-                      + OBS <span class="mod-count">${team.obstacles || 0}</span>
-                  </button>
-                  <button class="btn-red mod-btn" ${disMod} onclick="addModifier('${team.id}', 'derails')">
-                      + DERAIL <span class="mod-count">${team.derails || 0}</span>
-                  </button>
-                  <button class="btn-manage mod-btn" ${disMod} title="Reset Modifiers" onclick="resetModifiers('${team.id}')" style="margin-left: 3px;">↺</button>
+              
+              <td>
+                  <div class="timer-display" id="raceTime_${team.id}" style="color: ${timerColor};">
+                      ${rawTimeDisplay}
+                  </div>
               </td>
-              <td class="timer-display" style="color: ${finalScoreMs !== null ? 'var(--neon-green)' : 'white'};">${totalTimeDisplay}</td>
+              
+              <td>${raceControls}</td>
+              
+              <td>
+                  <div class="mod-controls">
+                      <button class="btn-green mod-btn" ${disMod} onclick="addModifier('${team.id}', 'points')">
+                          + PT <span class="mod-count">${team.points || 0}</span>
+                      </button>
+                      <button class="btn-orange mod-btn" ${disMod} onclick="addModifier('${team.id}', 'obstacles')">
+                          + OBS <span class="mod-count">${team.obstacles || 0}</span>
+                      </button>
+                      <button class="btn-red mod-btn" ${disMod} onclick="addModifier('${team.id}', 'derails')">
+                          + DERAIL <span class="mod-count">${team.derails || 0}</span>
+                      </button>
+                      <button class="btn-manage mod-btn" ${disMod} title="Reset Modifiers" onclick="resetModifiers('${team.id}')" style="margin-left: 3px;">↺</button>
+                  </div>
+              </td>
+              
+              <td>
+                  <div class="timer-display" style="color: ${finalScoreMs !== null ? 'var(--neon-green)' : 'white'};">
+                      ${totalTimeDisplay}
+                  </div>
+              </td>
           </tr>`;
       });
   }
