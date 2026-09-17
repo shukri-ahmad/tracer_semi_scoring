@@ -3,184 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAKEROBOT TRACER (SEMI AUTO) - Standings</title>
+    <title>Live Leaderboard - Makerobot Semi-Auto Tracer</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --red-gear: #e72429;
-            --blue-gear: #1f4179;
-            --semi-grad: linear-gradient(90deg, #0f5257 0%, #00b4d8 100%);
-            --cyan-accent: #00b4d8;
+            --tracer-grad: linear-gradient(90deg, #5c4300 0%, #e6a800 100%);
+            --gold-accent: #e6a800;
             --bg-dark: #090c10;
             --panel-bg: #111822;
-            --border-glow: #00b4d8;
+            --border-glow: #1f4179;
             --text-main: #c9d1d9;
             --neon-green: #00ff88;
         }
 
-        body { font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 20px; background-image: radial-gradient(circle at 50% 0%, rgba(0, 180, 216, 0.15) 0%, transparent 50%); }
-        .container { max-width: 1000px; margin: 0 auto; background: var(--panel-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--border-glow); margin-bottom: 30px; }
-        
-        h1, h2, h3 { font-family: 'Orbitron', sans-serif; text-align: center; color: white; letter-spacing: 1px; text-transform: uppercase; margin-top: 0;}
-        .logo-container { text-align: center; margin-bottom: 10px; }
-        .logo-container img { max-width: 250px; filter: drop-shadow(0 0 10px rgba(0,180,216,0.3)); }
-        
-        .header-links { text-align: right; margin-bottom: 10px; }
-        .header-links a { color: var(--cyan-accent); text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 14px; text-transform: uppercase; transition: color 0.3s;}
-        .header-links a:hover { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
-        
-        .game-selector { text-align: center; margin-bottom: 25px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid #30363d; }
-        .game-selector select { padding: 10px; font-size: 16px; border-radius: 4px; font-weight: bold; width: 50%; background: #0d1117; color: white; border: 1px solid var(--border-glow); font-family: 'Rajdhani', sans-serif; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px; }
-        th, td { padding: 15px 12px; text-align: center; border-bottom: 1px solid #30363d; vertical-align: middle;}
-        th { background: var(--semi-grad); color: white; font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 1px; }
-        
-        .rank-1 { background: rgba(0, 180, 216, 0.15) !important; }
-        .rank-1 td { color: #fff; font-weight: bold; text-shadow: 0 0 5px var(--cyan-accent); }
-        
-        .team-name { font-weight: bold; text-align: left; padding-left: 20px; font-size: 1.2em; color: white;}
-        .time-font { 
-            font-family: 'Orbitron', monospace; 
-            font-weight: 700; 
-            font-size: 1.1em;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            padding: 20px; 
+            margin: 0;
+            background-image: radial-gradient(circle at 50% 0%, rgba(31, 65, 121, 0.2) 0%, transparent 60%);
         }
-
-        .digit-slot { display: inline-block; width: 0.75em; text-align: center; }
         
-        .total-time-box { font-size: 1.3em; font-weight: bold; background: #0d1117; border: 1px solid var(--neon-green); border-radius: 4px; display: inline-flex; padding: 8px 15px; color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.4);}
-        .pending-box { font-size: 1em; color: #6e7681; font-style: italic; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #30363d; padding-bottom: 15px; margin-bottom: 20px;}
+        .title-area h1 { font-family: 'Orbitron', sans-serif; color: white; margin: 0; font-size: 28px; letter-spacing: 2px;}
+        .title-area h2 { font-family: 'Orbitron', sans-serif; color: var(--gold-accent); margin: 5px 0 0 0; font-size: 16px; letter-spacing: 3px;}
         
-        .mod-chip { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-family: 'Orbitron', sans-serif; font-weight: bold; margin: 0 3px;}
-        .mod-green { background: rgba(39, 174, 96, 0.2); color: #2ecc71; border: 1px solid #27ae60;}
-        .mod-red { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #c0392b;}
+        .admin-link { color: #8b949e; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; border: 1px solid #30363d; padding: 5px 10px; border-radius: 4px; transition: 0.3s; }
+        .admin-link:hover { background: rgba(255,255,255,0.1); color: white;}
 
-        .formula-text { text-align: center; font-size: 14px; color: #8b949e; margin-top: -10px; margin-bottom: 20px; font-weight: bold;}
+        .selector-box { background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-glow); text-align: center; margin-bottom: 20px;}
+        select { padding: 10px; font-size: 16px; font-family: 'Rajdhani', sans-serif; background: #0d1117; color: white; border: 1px solid var(--gold-accent); border-radius: 4px; width: 300px; }
+        
+        .leaderboard-container { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px;}
+        th { background: #0d1117; color: #8b949e; font-family: 'Orbitron', sans-serif; padding: 15px; border-bottom: 2px solid var(--gold-accent); text-align: center; letter-spacing: 1px; font-size: 14px;}
+        td { padding: 15px; border-bottom: 1px solid #30363d; text-align: center; vertical-align: middle; background: rgba(17, 24, 34, 0.6);}
+        
+        tr.active-run td { background: rgba(31, 65, 121, 0.4); border-left: 3px solid var(--neon-green);}
+        
+        .rank-col { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 20px; color: #8b949e; width: 80px;}
+        .rank-1 { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-size: 24px;}
+        .rank-2 { color: #c0c0c0; text-shadow: 0 0 10px rgba(192,192,192,0.5); font-size: 22px;}
+        .rank-3 { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.5); font-size: 22px;}
+        
+        .team-col { font-weight: bold; text-align: left; padding-left: 20px; color: white; font-size: 22px;}
+        
+        .time-box { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: white; }
+        .final-time-box { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+        .digit-slot { display: inline-block; width: 0.6em; text-align: center; }
+
+        .mod-pill { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin: 0 3px; font-family: 'Orbitron', sans-serif;}
+        .mod-pt { background: rgba(39, 174, 96, 0.2); color: #2ecc71; border: 1px solid #2ecc71;}
+        .mod-obs { background: rgba(230, 168, 0, 0.2); color: #f39c12; border: 1px solid #f39c12;}
+        .mod-der { background: rgba(231, 36, 41, 0.2); color: #e74c3c; border: 1px solid #e74c3c;}
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-links"><a href="admin_semi_auto.html">[ ADMIN TERMINAL ]</a></div>
-    
-    <div class="logo-container">
-        <img src="[FINAL] LOGO MAKEROBOT2026 (8)-Photoroom.png" alt="Makerobot Tracer Logo">
-        <h2 style="margin-top: 5px; font-size: 26px; color: var(--cyan-accent);">TRACER (SEMI AUTO) STANDINGS</h2>
+<div class="header">
+    <div class="title-area">
+        <h1>SEMI-AUTO TRACER</h1>
+        <h2>LIVE LEADERBOARD</h2>
     </div>
-    
-    <div class="game-selector">
-        <label for="publicGameSelect" style="font-weight: bold; display: block; margin-bottom: 8px; color: #8b949e; font-family: 'Orbitron', sans-serif;">SELECT CATEGORY</label>
-        <select id="publicGameSelect" onchange="loadSelectedGame()"><option>INITIALIZING...</option></select>
-    </div>
+    <a href="login.html" class="admin-link">ADMIN LOGIN 🔐</a>
+</div>
 
-    <p class="formula-text">TOTAL TIME = RACE TIME - (POINTS x 10s) + (PENALTIES x 10s)</p>
+<div class="selector-box" id="selectorBox">
+    <h3 style="font-family: 'Orbitron', sans-serif; color: white; margin-top:0;">SELECT TOURNAMENT DIRECTORY</h3>
+    <select id="gameSelect" onchange="loadGameData(this.value)">
+        <option value="">-- LOADING SYSTEMS --</option>
+    </select>
+</div>
+
+<div class="leaderboard-container" id="leaderboardContainer">
+    <h2 id="activeGameTitle" style="text-align: center; font-family: 'Orbitron', sans-serif; color: var(--gold-accent); margin-bottom: 5px;"></h2>
+    <div id="gameStatusLabel" style="text-align: center; color: #8b949e; font-size: 14px; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;">STATUS: IN PROGRESS</div>
     
     <table>
         <thead>
             <tr>
-                <th>RANK</th>
-                <th>TEAM UNIT</th>
-                <th>RAW RACE TIME</th>
+                <th class="rank-col">RANK</th>
+                <th style="text-align:left; padding-left: 20px;">TEAM UNIT</th>
+                <th>RAW TIME</th>
                 <th>MODIFIERS</th>
-                <th>FINAL TOTAL TIME</th>
+                <th>FINAL SCORE</th>
             </tr>
         </thead>
-        <tbody id="leaderboard-body"><tr><td colspan="5">AWAITING DATA...</td></tr></tbody>
+        <tbody id="leaderboardBody">
+            <!-- Data populated via JS -->
+        </tbody>
     </table>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyCGERiYn2mKRHH4O3DSVunFeIQBYn4QjBM",
-    authDomain: "makerobot-blitz.firebaseapp.com",
-    projectId: "makerobot-blitz",
-    storageBucket: "makerobot-blitz.firebasestorage.app",
-    messagingSenderId: "343992286368",
-    appId: "1:343992286368:web:e5f99c7df490c1d6369dc5"
+    apiKey: "AIzaSyC70m3k8VSSIshbjPJuOizEADA8mBV79ug",
+    authDomain: "makerobot-tracer-semi-auto.firebaseapp.com",
+    projectId: "makerobot-tracer-semi-auto",
+    storageBucket: "makerobot-tracer-semi-auto.firebasestorage.app",
+    messagingSenderId: "384231222540",
+    appId: "1:384231222540:web:a9c892c9c4c13698e7ed29"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let unsubTeams = null;
+  let currentUnsubGame = null;
+  let currentUnsubTeams = null;
+  let liveTimerIntervals = {};
 
-  function formatTime(ms) {
+  // Formatter functions
+  function formatTimeHtml(ms) {
       if(ms === null || ms === undefined || ms < 0) return "--:--.--";
       let date = new Date(ms);
       let m = String(date.getUTCMinutes()).padStart(2, '0');
       let s = String(date.getUTCSeconds()).padStart(2, '0');
       let msStr = String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0');
-      
       let raw = `${m}:${s}.${msStr}`;
       let html = '';
-      for(let char of raw) {
-          html += `<span class="digit-slot">${char}</span>`;
-      }
+      for(let char of raw) { html += `<span class="digit-slot">${char}</span>`; }
       return html;
   }
 
-  async function loadGamesList() {
-      const selectElement = document.getElementById("publicGameSelect");
-      const gamesSnap = await getDocs(collection(db, "semi_auto_games"));
-      selectElement.innerHTML = "";
-      if(gamesSnap.empty) return selectElement.innerHTML = "<option>NO GAMES FOUND</option>";
-
-      gamesSnap.forEach(documentDoc => { 
-          selectElement.innerHTML += `<option value="${documentDoc.id}">${documentDoc.data().name}</option>`; 
-      });
-      loadSelectedGame();
+  function calculateAdjustedTime(rawTimeMs, points, obstacles, derails) {
+      if (rawTimeMs === null || rawTimeMs === undefined) return null;
+      let pts = points || 0;
+      let obs = obstacles || 0;
+      let drs = derails || 0;
+      let adjusted = rawTimeMs - (pts * 10000) + (obs * 10000) + (drs * 15000);
+      return Math.max(0, adjusted);
   }
-  loadGamesList();
 
-  window.loadSelectedGame = function() {
-      const gameId = document.getElementById("publicGameSelect").value;
-      if(!gameId || gameId === "NO GAMES FOUND") return;
+  // 1. Fetch available games for dropdown
+  onSnapshot(collection(db, "tracer_games"), (snapshot) => {
+      const select = document.getElementById("gameSelect");
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">-- CHOOSE A TOURNAMENT --</option>';
+      
+      snapshot.forEach(docSnap => {
+          const game = docSnap.data();
+          const option = document.createElement("option");
+          option.value = docSnap.id;
+          option.text = `${game.name} ${game.isRaceLocked ? '(FINISHED)' : ''}`;
+          select.appendChild(option);
+      });
+      if(currentVal) select.value = currentVal;
+  });
 
-      if(unsubTeams) unsubTeams();
+  window.loadGameData = function(gameId) {
+      if(!gameId) {
+          document.getElementById("leaderboardContainer").style.display = "none";
+          return;
+      }
+      
+      document.getElementById("leaderboardContainer").style.display = "block";
 
-      unsubTeams = onSnapshot(collection(db, "semi_auto_games", gameId, "teams"), (snapshot) => {
-        let teams = [];
-        snapshot.forEach(documentDoc => teams.push({ id: documentDoc.id, ...documentDoc.data() }));
-        
-        teams.sort((a, b) => {
-            if (a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
-            if (a.totalTimeMs !== null) return -1;
-            if (b.totalTimeMs !== null) return 1;
-            return a.name.localeCompare(b.name);
-        });
-        
-        const tbody = document.getElementById("leaderboard-body");
-        tbody.innerHTML = ""; 
-        if (teams.length === 0) return tbody.innerHTML = "<tr><td colspan='5'>NO TEAMS REGISTERED.</td></tr>";
+      if(currentUnsubGame) currentUnsubGame();
+      if(currentUnsubTeams) currentUnsubTeams();
+      for(let key in liveTimerIntervals) clearInterval(liveTimerIntervals[key]);
 
-        teams.forEach((team, index) => {
-          let raceStr = team.raceTimeMs !== null ? formatTime(team.raceTimeMs) : "--:--.--";
-          let raceColor = team.raceTimeMs !== null ? "var(--cyan-accent)" : "#8b949e";
+      currentUnsubGame = onSnapshot(doc(db, "tracer_games", gameId), (docSnap) => {
+          const game = docSnap.data();
+          if(!game) return;
+          document.getElementById("activeGameTitle").innerText = game.name.toUpperCase();
+          document.getElementById("gameStatusLabel").innerText = game.isRaceLocked ? "STATUS: RACE CONCLUDED (OFFICIAL RESULTS)" : "STATUS: LIVE MATCH IN PROGRESS";
+          document.getElementById("gameStatusLabel").style.color = game.isRaceLocked ? "var(--gold-accent)" : "#8b949e";
+      });
 
-          let modHtml = "";
-          if(team.points > 0) modHtml += `<span class="mod-chip mod-green">-${team.points * 10}s</span>`;
-          if(team.penalties > 0) modHtml += `<span class="mod-chip mod-red">+${team.penalties * 10}s</span>`;
-          if(!modHtml) modHtml = `<span style="color:#6e7681">-</span>`;
+      currentUnsubTeams = onSnapshot(collection(db, "tracer_games", gameId, "teams"), (snapshot) => {
+          let teams = [];
+          snapshot.forEach(d => teams.push({ id: d.id, ...d.data() }));
+          
+          // Sorting Logic: Finished teams (totalTimeMs) first -> lowest to highest.
+          // Then Running teams. Then Pending teams.
+          teams.sort((a, b) => {
+              if(a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
+              if(a.totalTimeMs !== null) return -1;
+              if(b.totalTimeMs !== null) return 1;
+              if(a.raceStartTimestamp && !b.raceStartTimestamp) return -1;
+              if(!a.raceStartTimestamp && b.raceStartTimestamp) return 1;
+              return a.name.localeCompare(b.name);
+          });
 
-          let totalHtml = team.totalTimeMs !== null 
-              ? `<span class="total-time-box time-font">${formatTime(team.totalTimeMs)}</span>` 
-              : `<span class="pending-box">RACE IN PROGRESS</span>`;
+          const tbody = document.getElementById("leaderboardBody");
+          tbody.innerHTML = "";
+          let rank = 1;
 
-          tbody.innerHTML += `
-            <tr class="${index === 0 && team.totalTimeMs !== null ? 'rank-1' : ''}">
-              <td class="time-font" style="font-size: 1.2em;">${index + 1}</td>
-              <td class="team-name">${team.name}</td>
-              <td class="time-font" style="color:${raceColor}">${raceStr}</td>
-              <td>${modHtml}</td>
-              <td>${totalHtml}</td>
-            </tr>`;
-        });
+          teams.forEach((team) => {
+              let isFinished = team.totalTimeMs !== null;
+              let isRunning = team.raceStartTimestamp !== null;
+              
+              let trClass = isRunning ? "active-run" : "";
+              
+              // Rank calculation
+              let rankHtml = `<span class="rank-col">-</span>`;
+              if (isFinished) {
+                  let rClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "";
+                  rankHtml = `<span class="rank-col ${rClass}">#${rank}</span>`;
+                  rank++;
+              }
+
+              // Modifiers Setup
+              let modHtml = "";
+              if(team.points > 0) modHtml += `<span class="mod-pill mod-pt">-${team.points*10}s (PT)</span>`;
+              if(team.obstacles > 0) modHtml += `<span class="mod-pill mod-obs">+${team.obstacles*10}s (OBS)</span>`;
+              if(team.derails > 0) modHtml += `<span class="mod-pill mod-der">+${team.derails*15}s (DER)</span>`;
+              if(!modHtml) modHtml = `<span style="color:#6e7681; font-size:14px;">NONE</span>`;
+
+              // Time Logic
+              let rawDisplay = "--:--.--";
+              let finalDisplay = "--:--.--";
+              let rawColor = "white";
+
+              if (isFinished) {
+                  rawDisplay = formatTimeHtml(team.raceTimeMs);
+                  finalDisplay = formatTimeHtml(team.totalTimeMs);
+                  rawColor = "#8b949e";
+              } else if (isRunning) {
+                  rawDisplay = `<span id="liveRaw_${team.id}">00:00.00</span>`;
+                  finalDisplay = `<span id="liveFinal_${team.id}">00:00.00</span>`;
+                  rawColor = "var(--gold-accent)";
+                  
+                  // Setup live updating timer
+                  if(!liveTimerIntervals[team.id]) {
+                      liveTimerIntervals[team.id] = setInterval(() => {
+                          let elapsed = Date.now() - team.raceStartTimestamp;
+                          let liveRawEl = document.getElementById(`liveRaw_${team.id}`);
+                          let liveFinalEl = document.getElementById(`liveFinal_${team.id}`);
+                          if(liveRawEl) liveRawEl.innerHTML = formatTimeHtml(elapsed);
+                          if(liveFinalEl) liveFinalEl.innerHTML = formatTimeHtml(calculateAdjustedTime(elapsed, team.points, team.obstacles, team.derails));
+                      }, 50);
+                  }
+              } else {
+                  // Pending
+                  rawDisplay = formatTimeHtml(0);
+                  finalDisplay = formatTimeHtml(0);
+                  rawColor = "#484f58";
+              }
+
+              tbody.innerHTML += `
+                  <tr class="${trClass}">
+                      <td>${rankHtml}</td>
+                      <td class="team-col">${team.name}</td>
+                      <td class="time-box" style="color: ${rawColor}">${rawDisplay}</td>
+                      <td>${modHtml}</td>
+                      <td class="final-time-box" style="${!isFinished && !isRunning ? 'color:#484f58; text-shadow:none;' : ''}">${finalDisplay}</td>
+                  </tr>
+              `;
+          });
       });
   };
 </script>
