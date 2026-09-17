@@ -35,7 +35,6 @@
         .header-controls a { color: var(--gold-accent); text-decoration: none; font-weight: bold; font-family: 'Orbitron', sans-serif; font-size: 12px; margin-right: 15px; transition: 0.3s;}
         .header-controls a:hover { color: white; }
         
-        /* User Profile Status Badge */
         .user-status-bar {
             display: flex;
             align-items: center;
@@ -103,7 +102,6 @@
             align-items: center;
             white-space: nowrap;
         }
-
         .digit-slot { display: inline-block; width: 0.75em; text-align: center; }
         
         .active-game-bar {
@@ -150,13 +148,12 @@
         <button id="tabBtn2" class="tab-btn" onclick="switchTab('raceTab', this)">3. RACE PHASE</button>
     </div>
 
-    <!-- Active Game Header with PDF Export -->
     <div id="activeGameDisplay" class="active-game-bar">
         <span id="targetGameLabel">TARGET GAME: NULL</span>
         <button id="superAdminPdfBtn" class="btn-pdf" style="display: none; font-size: 11px; padding: 6px 12px;" onclick="generateResultsPDF()">📥 DOWNLOAD PDF REPORT</button>
     </div>
 
-    <!-- TAB 0: Games Directory -->
+    <!-- TAB 0 -->
     <div id="gamesTab" class="tab-content active">
         <h3>INITIALIZE TRACER GAME</h3>
         <input type="text" id="gameName" placeholder="e.g., TRACER SEMI-AUTO CHAMPIONSHIP 2026">
@@ -169,7 +166,7 @@
         </table>
     </div>
 
-    <!-- TAB 1: Teams Registration -->
+    <!-- TAB 1 -->
     <div id="teamsTab" class="tab-content">
         <div id="teamLockMessage" class="lock-msg">SYSTEM LOCKED: RACE PHASE INITIATED. ROSTER IS LOCKED.</div>
         <div id="teamSetupControls">
@@ -185,7 +182,7 @@
         <button id="doneTeamsBtn" class="btn-primary" onclick="lockTeamsAndProceed()" style="width: 100%; margin-top: 20px;">[ INITIATE EVENT (PROCEED TO RACE PHASE) ]</button>
     </div>
 
-    <!-- TAB 2: Race Control & Scoring -->
+    <!-- TAB 2 -->
     <div id="raceTab" class="tab-content">
         <div id="raceLockedUI" class="lock-msg">RACE PHASE LOCKED. DATA FINALIZED.</div>
         <p id="raceInfoMsg" style="color: #8b949e; text-align: center; margin-bottom: 20px;">
@@ -216,7 +213,6 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyC70m3k8VSSIshbjPJuOizEADA8mBV79ug",
     authDomain: "makerobot-tracer-semi-auto.firebaseapp.com",
@@ -474,7 +470,6 @@
       let obs = obstacles || 0;
       let drs = derails || 0;
       
-      // Math: Raw Time - (10s * pts) + (10s * obs) + (15s * drs)
       let adjusted = rawTimeMs - (pts * 10000) + (obs * 10000) + (drs * 15000);
       return Math.max(0, adjusted);
   }
@@ -554,7 +549,6 @@
 
   window.startTeamRace = async function(teamId) {
       if(currentGameData && currentGameData.isRaceLocked) return alert("RACE PHASE IS LOCKED.");
-      
       await updateDoc(doc(db, "tracer_games", currentGameId), { isRaceStarted: true });
       await updateDoc(doc(db, "tracer_games", currentGameId, "teams", teamId), { raceStartTimestamp: Date.now() });
   };
@@ -597,7 +591,6 @@
           let drs = type === 'derails' ? newVal : (team.derails || 0);
           updateObj.totalTimeMs = calculateAdjustedTime(team.raceTimeMs, pts, obs, drs);
       }
-
       await updateDoc(doc(db, "tracer_games", currentGameId, "teams", teamId), updateObj);
   };
 
@@ -609,13 +602,11 @@
       if (team.raceTimeMs !== null) {
           updateObj.totalTimeMs = team.raceTimeMs;
       }
-
       await updateDoc(doc(db, "tracer_games", currentGameId, "teams", teamId), updateObj);
   };
 
   window.lockRacePhase = async function() {
       const unfinishedTeams = currentTeamsList.filter(t => t.raceTimeMs === null);
-
       if (unfinishedTeams.length > 0) {
           const names = unfinishedTeams.map(t => `• ${t.name}`).join('\n');
           const warningMsg = `⚠️ WARNING: ${unfinishedTeams.length} team(s) have NOT finished racing:\n\n${names}\n\nAre you sure you want to lock the race phase and finalize results anyway?`;
@@ -628,7 +619,7 @@
       alert("RACE PHASE TERMINATED. RESULTS LOCKED.");
   };
 
-  // --- SUPER ADMIN EXCLUSIVE: PDF REPORT GENERATOR ---
+  // PDF Generator
   window.generateResultsPDF = function() {
       if (!currentGameData || !currentGameId) return alert("SELECT A TARGET GAME FIRST.");
       
@@ -641,7 +632,6 @@
       });
 
       const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
       let rowsHtml = "";
       sortedTeams.forEach((team, index) => {
           let raceStr = formatTimePlain(team.raceTimeMs);
@@ -680,9 +670,7 @@
                   th { background-color: #edf2f7; color: #2d3748; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
                   tr:nth-child(even) { background-color: #f7fafc; }
                   .footer { margin-top: 40px; text-align: right; font-size: 11px; color: #a0aec0; }
-                  @media print {
-                      body { padding: 0; }
-                  }
+                  @media print { body { padding: 0; } }
               </style>
           </head>
           <body>
@@ -700,16 +688,10 @@
                           <th>FINAL TIME</th>
                       </tr>
                   </thead>
-                  <tbody>
-                      ${rowsHtml}
-                  </tbody>
+                  <tbody>${rowsHtml}</tbody>
               </table>
               <div class="footer">Generated by Makerobot Super Admin System</div>
-              <script>
-                  window.onload = function() {
-                      window.print();
-                  };
-              <\/script>
+              <script>window.onload = function() { window.print(); };<\/script>
           </body>
           </html>
       `);
