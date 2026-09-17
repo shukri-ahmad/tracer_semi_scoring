@@ -76,7 +76,7 @@
         button.btn-green { background-color: #27ae60; color: white; }
         button.btn-orange { background-color: var(--orange-warning); color: black; }
         button.btn-gray { background-color: #484f58; color: #c9d1d9; cursor: not-allowed; }
-        button.btn-manage { background-color: #f39c12; padding: 5px 10px; font-size: 12px; color: black; }
+        button.btn-manage { background-color: #f39c12; color: black; }
         button.btn-restart { background-color: #9e58cc; padding: 5px 10px; font-size: 12px; }
         button.btn-pdf { background: linear-gradient(90deg, #7b2cbf 0%, #9d4edd 100%); color: white; box-shadow: 0 0 10px rgba(157, 78, 221, 0.4); }
         button.btn-pdf:hover { filter: brightness(1.2); }
@@ -119,9 +119,31 @@
         }
         .lock-msg { display: none; background: rgba(231, 36, 41, 0.1); padding: 15px; border-left: 4px solid var(--red-gear); margin-bottom: 15px; font-weight: bold; color: #ff7b72; font-family: 'Orbitron', sans-serif;}
         
-        .mod-controls { display: flex; gap: 4px; justify-content: center; align-items: center; flex-wrap: wrap; }
-        .mod-btn { padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; }
-        .mod-count { background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 8px; font-size: 11px; }
+        /* UPDATED MODIFIER CSS */
+        .mod-controls { 
+            display: flex; 
+            flex-direction: column; /* Stack vertically */
+            gap: 6px; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .mod-btn { 
+            width: 130px; /* Fixed width for all */
+            padding: 6px 10px; 
+            font-size: 11px; 
+            display: flex; 
+            justify-content: space-between; /* Space out label and count */
+            align-items: center; 
+            box-sizing: border-box;
+        }
+        .mod-count { 
+            background: rgba(0,0,0,0.5); 
+            padding: 2px 6px; 
+            border-radius: 8px; 
+            font-size: 11px; 
+            min-width: 16px;
+            text-align: center;
+        }
     </style>
 </head>
 <body id="adminBody">
@@ -507,11 +529,11 @@
               rawTimeDisplay = formatTime(team.raceTimeMs);
               totalTimeDisplay = formatTime(finalScoreMs);
               timerColor = "var(--gold-accent)";
-              raceControls = `<button class="btn-manage" onclick="resetTeamRace('${team.id}')">↺ REDO</button>`;
+              raceControls = `<button class="btn-manage" onclick="resetTeamRace('${team.id}')" style="padding: 10px 15px;">↺ REDO</button>`;
               clearInterval(raceTimerIntervals[team.id]);
           } else if (team.raceStartTimestamp !== null) {
               timerColor = "var(--neon-green)";
-              raceControls = `<button class="btn-red" onclick="stopTeamRace('${team.id}')">⏹ STOP</button>`;
+              raceControls = `<button class="btn-red" onclick="stopTeamRace('${team.id}')" style="padding: 10px 15px;">⏹ STOP</button>`;
               totalTimeDisplay = "--:--.--";
               if(!raceTimerIntervals[team.id]) {
                   raceTimerIntervals[team.id] = setInterval(() => {
@@ -521,12 +543,11 @@
               }
           } else {
               totalTimeDisplay = "--:--.--";
-              raceControls = `<button class="btn-primary" style="padding: 5px 15px;" onclick="startTeamRace('${team.id}')">▶ START</button>`;
+              raceControls = `<button class="btn-primary" style="padding: 10px 15px;" onclick="startTeamRace('${team.id}')">▶ START</button>`;
           }
 
           const disMod = isRaceLocked ? "disabled style='opacity:0.5; cursor:not-allowed;'" : "";
 
-          // APPLYING THE FIX: Wrapping inner contents in divs so td keeps normal behavior
           tbody.innerHTML += `<tr>
               <td class="team-name">${team.name}</td>
               
@@ -541,15 +562,17 @@
               <td>
                   <div class="mod-controls">
                       <button class="btn-green mod-btn" ${disMod} onclick="addModifier('${team.id}', 'points')">
-                          + PT <span class="mod-count">${team.points || 0}</span>
+                          <span>+ POINT</span> <span class="mod-count">${team.points || 0}</span>
                       </button>
                       <button class="btn-orange mod-btn" ${disMod} onclick="addModifier('${team.id}', 'obstacles')">
-                          + OBS <span class="mod-count">${team.obstacles || 0}</span>
+                          <span>+ OBS</span> <span class="mod-count">${team.obstacles || 0}</span>
                       </button>
                       <button class="btn-red mod-btn" ${disMod} onclick="addModifier('${team.id}', 'derails')">
-                          + DERAIL <span class="mod-count">${team.derails || 0}</span>
+                          <span>+ DERAIL</span> <span class="mod-count">${team.derails || 0}</span>
                       </button>
-                      <button class="btn-manage mod-btn" ${disMod} title="Reset Modifiers" onclick="resetModifiers('${team.id}')" style="margin-left: 3px;">↺</button>
+                      <button class="btn-manage mod-btn" ${disMod} title="Reset Modifiers" onclick="resetModifiers('${team.id}')" style="justify-content: center; margin-top: 4px;">
+                          ↺ RESET MODIFIERS
+                      </button>
                   </div>
               </td>
               
