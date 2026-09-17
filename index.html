@@ -38,7 +38,7 @@
         .leaderboard-container { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px;}
         th { background: #0d1117; color: #8b949e; font-family: 'Orbitron', sans-serif; padding: 15px; border-bottom: 2px solid var(--gold-accent); text-align: center; letter-spacing: 1px; font-size: 14px;}
-        td { padding: 15px; border-bottom: 1px solid #30363d; text-align: center; vertical-align: middle; background: rgba(17, 24, 34, 0.6);}
+        td { padding: 15px; border-bottom: 1px solid #30363d; text-align: center; vertical-align: middle; background: rgba(17, 24, 34, 0.6); transition: all 0.5s ease;}
         
         tr.active-run td { background: rgba(31, 65, 121, 0.4); border-left: 3px solid var(--neon-green);}
         
@@ -53,14 +53,13 @@
         .final-time-box { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,136,0.3); }
         .digit-slot { display: inline-block; width: 0.8em; text-align: center; }
 
-        /* FIXED MODIFIER ALIGNMENT */
         .mod-container { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
         
         .mod-pill { 
             display: inline-flex; 
             justify-content: center;
             align-items: center;
-            width: 110px; /* Force uniform width for perfect alignment */
+            width: 110px; 
             padding: 6px 0; 
             border-radius: 4px; 
             font-size: 13px; 
@@ -74,6 +73,17 @@
         .mod-obs { background: rgba(230, 168, 0, 0.2); color: #f39c12; border: 1px solid #f39c12;}
         .mod-der { background: rgba(231, 36, 41, 0.2); color: #e74c3c; border: 1px solid #e74c3c;}
         .mod-none { color: #6e7681; font-size: 14px; font-weight: bold; }
+
+        /* PODIUM ANIMATIONS & CLASSES */
+        @keyframes pulse-gold { 0% { box-shadow: inset 0 0 10px rgba(255,215,0,0.1); } 50% { box-shadow: inset 0 0 30px rgba(255,215,0,0.5); } 100% { box-shadow: inset 0 0 10px rgba(255,215,0,0.1); } }
+        @keyframes pulse-silver { 0% { box-shadow: inset 0 0 10px rgba(192,192,192,0.1); } 50% { box-shadow: inset 0 0 30px rgba(192,192,192,0.4); } 100% { box-shadow: inset 0 0 10px rgba(192,192,192,0.1); } }
+        @keyframes pulse-bronze { 0% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } 50% { box-shadow: inset 0 0 30px rgba(205,127,50,0.4); } 100% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } }
+
+        .podium-1 td { background: rgba(255, 215, 0, 0.1) !important; border-top: 2px solid #ffd700; border-bottom: 2px solid #ffd700; animation: pulse-gold 2s infinite; }
+        .podium-2 td { background: rgba(192, 192, 192, 0.08) !important; border-top: 1px solid #c0c0c0; border-bottom: 1px solid #c0c0c0; animation: pulse-silver 2.5s infinite; }
+        .podium-3 td { background: rgba(205, 127, 50, 0.08) !important; border-top: 1px solid #cd7f32; border-bottom: 1px solid #cd7f32; animation: pulse-bronze 3s infinite; }
+        
+        .medal-icon { margin-left: 10px; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
     </style>
 </head>
 <body>
@@ -132,6 +142,7 @@
   let currentUnsubGame = null;
   let currentUnsubTeams = null;
   let liveTimerIntervals = {};
+  let isRaceLockedGlobal = false; // Tracks if the race is officially locked
 
   function formatTimeHtml(ms) {
       if(ms === null || ms === undefined || ms < 0) return "--:--.--";
@@ -184,9 +195,18 @@
       currentUnsubGame = onSnapshot(doc(db, "tracer_games", gameId), (docSnap) => {
           const game = docSnap.data();
           if(!game) return;
+          
+          isRaceLockedGlobal = game.isRaceLocked;
+          
           document.getElementById("activeGameTitle").innerText = game.name.toUpperCase();
-          document.getElementById("gameStatusLabel").innerText = game.isRaceLocked ? "STATUS: RACE CONCLUDED (OFFICIAL RESULTS)" : "STATUS: LIVE MATCH IN PROGRESS";
-          document.getElementById("gameStatusLabel").style.color = game.isRaceLocked ? "var(--gold-accent)" : "#8b949e";
+          
+          if(isRaceLockedGlobal) {
+              document.getElementById("gameStatusLabel").innerHTML = "🏆 OFFICIAL TOURNAMENT RESULTS LOCKED 🏆";
+              document.getElementById("gameStatusLabel").style.color = "var(--gold-accent)";
+          } else {
+              document.getElementById("gameStatusLabel").innerText = "STATUS: LIVE MATCH IN PROGRESS";
+              document.getElementById("gameStatusLabel").style.color = "#8b949e";
+          }
       });
 
       currentUnsubTeams = onSnapshot(collection(db, "tracer_games", gameId, "teams"), (snapshot) => {
@@ -211,6 +231,14 @@
               let isRunning = team.raceStartTimestamp !== null;
               
               let trClass = isRunning ? "active-run" : "";
+              let medalIcon = "";
+              
+              // PODIUM LOGIC
+              if (isFinished && isRaceLockedGlobal) {
+                  if (rank === 1) { trClass += " podium-1"; medalIcon = `<span class="medal-icon">🏆</span>`; }
+                  else if (rank === 2) { trClass += " podium-2"; medalIcon = `<span class="medal-icon">🥈</span>`; }
+                  else if (rank === 3) { trClass += " podium-3"; medalIcon = `<span class="medal-icon">🥉</span>`; }
+              }
               
               let rankHtml = `<span class="rank-col">-</span>`;
               if (isFinished) {
@@ -257,7 +285,7 @@
               tbody.innerHTML += `
                   <tr class="${trClass}">
                       <td>${rankHtml}</td>
-                      <td class="team-col">${team.name}</td>
+                      <td class="team-col">${team.name} ${medalIcon}</td>
                       <td class="time-box" style="color: ${rawColor}">${rawDisplay}</td>
                       <td>${modHtml}</td>
                       <td class="final-time-box" style="${!isFinished && !isRunning ? 'color:#484f58; text-shadow:none;' : ''}">${finalDisplay}</td>
