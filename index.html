@@ -51,12 +51,17 @@
         
         .time-box { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; color: white; }
         .final-time-box { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,136,0.3); }
-        .digit-slot { display: inline-block; width: 0.6em; text-align: center; }
+        
+        /* FIXED SQUISHED DIGITS HERE */
+        .digit-slot { display: inline-block; width: 0.8em; text-align: center; }
 
-        .mod-pill { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin: 0 3px; font-family: 'Orbitron', sans-serif;}
+        /* FIXED MODIFIER ALIGNMENT HERE */
+        .mod-container { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        .mod-pill { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; font-family: 'Orbitron', sans-serif; letter-spacing: 1px;}
         .mod-pt { background: rgba(39, 174, 96, 0.2); color: #2ecc71; border: 1px solid #2ecc71;}
         .mod-obs { background: rgba(230, 168, 0, 0.2); color: #f39c12; border: 1px solid #f39c12;}
         .mod-der { background: rgba(231, 36, 41, 0.2); color: #e74c3c; border: 1px solid #e74c3c;}
+        .mod-none { color: #6e7681; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -116,7 +121,6 @@
   let currentUnsubTeams = null;
   let liveTimerIntervals = {};
 
-  // Formatter functions
   function formatTimeHtml(ms) {
       if(ms === null || ms === undefined || ms < 0) return "--:--.--";
       let date = new Date(ms);
@@ -138,7 +142,6 @@
       return Math.max(0, adjusted);
   }
 
-  // 1. Fetch available games for dropdown
   onSnapshot(collection(db, "tracer_games"), (snapshot) => {
       const select = document.getElementById("gameSelect");
       const currentVal = select.value;
@@ -178,8 +181,7 @@
           let teams = [];
           snapshot.forEach(d => teams.push({ id: d.id, ...d.data() }));
           
-          // Sorting Logic: Finished teams (totalTimeMs) first -> lowest to highest.
-          // Then Running teams. Then Pending teams.
+          // SORTING LOGIC: Lowest Final Score (Fastest) gets 1st Place.
           teams.sort((a, b) => {
               if(a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
               if(a.totalTimeMs !== null) return -1;
@@ -199,7 +201,6 @@
               
               let trClass = isRunning ? "active-run" : "";
               
-              // Rank calculation
               let rankHtml = `<span class="rank-col">-</span>`;
               if (isFinished) {
                   let rClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "";
@@ -207,14 +208,14 @@
                   rank++;
               }
 
-              // Modifiers Setup
-              let modHtml = "";
+              // MODIFIER ALIGNMENT FIX (Using Flexbox Container)
+              let modHtml = `<div class="mod-container">`;
               if(team.points > 0) modHtml += `<span class="mod-pill mod-pt">-${team.points*10}s (PT)</span>`;
               if(team.obstacles > 0) modHtml += `<span class="mod-pill mod-obs">+${team.obstacles*10}s (OBS)</span>`;
               if(team.derails > 0) modHtml += `<span class="mod-pill mod-der">+${team.derails*15}s (DER)</span>`;
-              if(!modHtml) modHtml = `<span style="color:#6e7681; font-size:14px;">NONE</span>`;
+              if(!team.points && !team.obstacles && !team.derails) modHtml += `<span class="mod-none">NONE</span>`;
+              modHtml += `</div>`;
 
-              // Time Logic
               let rawDisplay = "--:--.--";
               let finalDisplay = "--:--.--";
               let rawColor = "white";
@@ -228,7 +229,6 @@
                   finalDisplay = `<span id="liveFinal_${team.id}">00:00.00</span>`;
                   rawColor = "var(--gold-accent)";
                   
-                  // Setup live updating timer
                   if(!liveTimerIntervals[team.id]) {
                       liveTimerIntervals[team.id] = setInterval(() => {
                           let elapsed = Date.now() - team.raceStartTimestamp;
@@ -239,7 +239,6 @@
                       }, 50);
                   }
               } else {
-                  // Pending
                   rawDisplay = formatTimeHtml(0);
                   finalDisplay = formatTimeHtml(0);
                   rawColor = "#484f58";
