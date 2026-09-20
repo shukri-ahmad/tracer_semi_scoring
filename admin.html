@@ -106,7 +106,6 @@
 
 <div class="container">
     <div class="header-panel">
-        <!-- HEADER WITH NEW TRACER LOGO -->
         <div style="display: flex; align-items: center; gap: 15px;">
             <img src="TRACER.png" alt="Logo" style="height: 60px; border-radius: 8px;">
             <div>
@@ -393,9 +392,13 @@
       switchTab('teamsTab', document.getElementById('tabBtn1'));
   };
 
-  window.lockTeamsAndProceed = function() {
+  // --- THIS FUNCTION HAS BEEN UPDATED TO LOCK THE ROSTER ---
+  window.lockTeamsAndProceed = async function() {
       if(currentTeamsList.length < 1) return alert("MINIMUM 1 UNIT REQUIRED FOR SIMULATION.");
-      switchTab('raceTab', document.getElementById('tabBtn2'));
+      if(confirm("INITIATE RACE PHASE?\n\nThis will lock the roster and prevent adding or deleting teams.")) {
+          await updateDoc(doc(db, "tracer_games", currentGameId), { isRaceStarted: true });
+          switchTab('raceTab', document.getElementById('tabBtn2'));
+      }
   };
 
   function renderTeamsTab() {
@@ -508,7 +511,6 @@
 
           const disMod = isRaceLocked ? "disabled style='opacity:0.5; cursor:not-allowed;'" : "";
 
-          // WITH DIV WRAPPERS FOR PROPER ALIGNMENT
           tbody.innerHTML += `<tr>
               <td class="team-name">${team.name}</td>
               
