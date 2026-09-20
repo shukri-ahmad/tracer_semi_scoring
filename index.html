@@ -66,7 +66,7 @@
         @keyframes pulse-bronze { 0% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } 50% { box-shadow: inset 0 0 30px rgba(205,127,50,0.4); } 100% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } }
         .medal-icon { margin-left: 10px; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
 
-        /* SPLASH SCREEN & START ANIMATION CSS */
+        /* SPLASH SCREEN CSS */
         .splash-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(9, 12, 16, 0.98);
@@ -80,8 +80,7 @@
             cursor: pointer;
         }
         
-        /* Transition properties to allow smooth dimming when "START" pops up */
-        .splash-header, .splash-team, .splash-timer { transition: opacity 0.4s ease, filter 0.4s ease; }
+        .splash-header, .splash-team, .splash-timer, .splash-details, .click-dismiss { transition: opacity 0.4s ease, filter 0.4s ease; }
         .dim-bg { opacity: 0.1 !important; filter: blur(3px); }
 
         .splash-header { font-family: 'Orbitron', sans-serif; font-size: 2.5em; color: #ff4757; letter-spacing: 5px; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);}
@@ -95,23 +94,32 @@
         .splash-der { color: #e74c3c !important; }
         .click-dismiss { margin-top: 30px; color: #6e7681; font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 2px;}
 
-        /* THE GIANT "START!" TEXT */
-        .splash-start-msg {
+        /* THE GIANT "START!" & "FINISH!" TEXTS */
+        .splash-start-msg, .splash-finish-msg {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Orbitron', sans-serif;
-            font-size: 18em;
             font-weight: 900;
-            color: var(--neon-green);
-            text-shadow: 0 0 60px rgba(0,255,136,1);
             z-index: 10000;
-            pointer-events: none; /* Let clicks pass through to dismiss screen */
+            pointer-events: none;
             display: none;
         }
         
-        /* The pop-and-fade animation */
-        .anim-start { animation: blastOut 1.5s ease-in-out forwards; }
+        .splash-start-msg {
+            font-size: 18em;
+            color: var(--neon-green);
+            text-shadow: 0 0 60px rgba(0,255,136,1);
+        }
+        
+        .splash-finish-msg {
+            font-size: 14em; /* Slightly smaller because the word is longer */
+            color: var(--gold-accent);
+            text-shadow: 0 0 60px rgba(230, 168, 0, 1);
+        }
+        
+        /* The pop-and-fade animation shared by both */
+        .anim-blast { animation: blastOut 1.5s ease-in-out forwards; }
         @keyframes blastOut {
             0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
             15% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
@@ -124,6 +132,7 @@
             .splash-team { font-size: 2.5em; margin-bottom: 10px; }
             .splash-timer { font-size: 4.5em; text-shadow: 0 0 30px rgba(0,255,136,0.4); }
             .splash-start-msg { font-size: 8em; }
+            .splash-finish-msg { font-size: 6em; }
             .splash-details { font-size: 1.2em; padding: 10px 20px; margin-top: 20px; }
         }
 
@@ -132,6 +141,7 @@
             .splash-team { font-size: 2em; margin-bottom: 5px; }
             .splash-timer { font-size: 3.2em; letter-spacing: -1px; }
             .splash-start-msg { font-size: 6em; }
+            .splash-finish-msg { font-size: 4em; }
             .splash-details { font-size: 0.9em; padding: 10px; margin-top: 15px; }
             .click-dismiss { font-size: 12px; margin-top: 15px; }
             .title-area h1 { font-size: 20px; }
@@ -148,8 +158,9 @@
 
 <!-- SPLASH SCREEN OVERLAY -->
 <div id="splashScreen" class="splash-overlay" onclick="hideSplash()">
-    <!-- THE GIANT START ANIMATION -->
+    <!-- THE GIANT ANIMATIONS -->
     <div id="splashStartMessage" class="splash-start-msg">START!</div>
+    <div id="splashFinishMessage" class="splash-finish-msg">FINISH!</div>
     
     <div id="splashHeader" class="splash-header">🔥 LIVE RUN 🔥</div>
     <div id="splashTeamName" class="splash-team">TEAM ALPHA</div>
@@ -161,7 +172,7 @@
         OBS: <span id="spObs" class="splash-obs">0</span> | 
         DER: <span id="spDer" class="splash-der">0</span>
     </div>
-    <div class="click-dismiss">( CLICK ANYWHERE TO DISMISS )</div>
+    <div id="clickDismiss" class="click-dismiss">( CLICK ANYWHERE TO DISMISS )</div>
 </div>
 
 <div class="header">
@@ -253,11 +264,14 @@
   window.hideSplash = function() {
       document.getElementById('splashScreen').style.display = 'none';
       
-      // Clean up classes
       document.getElementById('splashStartMessage').style.display = 'none';
+      document.getElementById('splashFinishMessage').style.display = 'none';
+      
       document.getElementById('splashHeader').classList.remove('dim-bg');
       document.getElementById('splashTeamName').classList.remove('dim-bg');
       document.getElementById('splashTimer').classList.remove('dim-bg');
+      document.getElementById('splashDetails').classList.remove('dim-bg');
+      document.getElementById('clickDismiss').classList.remove('dim-bg');
       
       clearInterval(splashTimerInterval);
       clearTimeout(splashTimeout);
@@ -271,6 +285,10 @@
       let teamName = document.getElementById('splashTeamName');
       let timer = document.getElementById('splashTimer');
       let startMsg = document.getElementById('splashStartMessage');
+      let finishMsg = document.getElementById('splashFinishMessage');
+      let dismissMsg = document.getElementById('clickDismiss');
+      
+      finishMsg.style.display = 'none'; // Ensure finish msg is hidden
       
       header.innerText = '🔥 LIVE RUN 🔥';
       header.style.color = '#ff4757';
@@ -282,32 +300,30 @@
       
       let elapsedCheck = Date.now() - team.raceStartTimestamp;
       
-      // Only show the dramatic "START!" if the race started less than 2 seconds ago
       if (elapsedCheck < 2000) {
           startMsg.style.display = 'block';
-          // Re-trigger CSS animation
-          startMsg.classList.remove('anim-start');
+          startMsg.classList.remove('anim-blast');
           void startMsg.offsetWidth; 
-          startMsg.classList.add('anim-start');
+          startMsg.classList.add('anim-blast');
           
-          // Dim the background elements
           header.classList.add('dim-bg');
           teamName.classList.add('dim-bg');
           timer.classList.add('dim-bg');
+          dismissMsg.classList.add('dim-bg');
           
-          // Undim after animation ends
           setTimeout(() => {
               header.classList.remove('dim-bg');
               teamName.classList.remove('dim-bg');
               timer.classList.remove('dim-bg');
+              dismissMsg.classList.remove('dim-bg');
               startMsg.style.display = 'none';
           }, 1400);
       } else {
-          // If page refreshed mid-race, skip animation
           startMsg.style.display = 'none';
           header.classList.remove('dim-bg');
           teamName.classList.remove('dim-bg');
           timer.classList.remove('dim-bg');
+          dismissMsg.classList.remove('dim-bg');
       }
       
       const updateTimer = () => {
@@ -324,29 +340,56 @@
       clearInterval(splashTimerInterval);
       document.getElementById('splashScreen').style.display = 'flex';
       
-      // Reset any dimming from running state
-      document.getElementById('splashHeader').classList.remove('dim-bg');
-      document.getElementById('splashTeamName').classList.remove('dim-bg');
-      document.getElementById('splashTimer').classList.remove('dim-bg');
-      document.getElementById('splashStartMessage').style.display = 'none';
+      let header = document.getElementById('splashHeader');
+      let teamName = document.getElementById('splashTeamName');
+      let timer = document.getElementById('splashTimer');
+      let details = document.getElementById('splashDetails');
+      let startMsg = document.getElementById('splashStartMessage');
+      let finishMsg = document.getElementById('splashFinishMessage');
+      let dismissMsg = document.getElementById('clickDismiss');
+
+      startMsg.style.display = 'none';
       
-      document.getElementById('splashHeader').innerText = '🏁 RACE FINISHED 🏁';
-      document.getElementById('splashHeader').style.color = 'var(--gold-accent)';
-      document.getElementById('splashHeader').style.textShadow = '0 0 20px rgba(230, 168, 0, 0.4)';
-      document.getElementById('splashTeamName').innerText = team.name;
+      header.innerText = '🏁 RACE FINISHED 🏁';
+      header.style.color = 'var(--gold-accent)';
+      header.style.textShadow = '0 0 20px rgba(230, 168, 0, 0.4)';
+      teamName.innerText = team.name;
       
-      document.getElementById('splashTimer').innerHTML = formatTimeHtml(team.totalTimeMs);
+      timer.innerHTML = formatTimeHtml(team.totalTimeMs);
       
-      document.getElementById('splashDetails').style.display = 'inline-block';
+      details.style.display = 'inline-block';
       document.getElementById('spRaw').innerHTML = formatTimeHtml(team.raceTimeMs);
       document.getElementById('spPt').innerText = team.points || 0;
       document.getElementById('spObs').innerText = team.obstacles || 0;
       document.getElementById('spDer').innerText = team.derails || 0;
 
+      // TRIGGER THE GOLDEN FINISH ANIMATION
+      finishMsg.style.display = 'block';
+      finishMsg.classList.remove('anim-blast');
+      void finishMsg.offsetWidth; 
+      finishMsg.classList.add('anim-blast');
+      
+      header.classList.add('dim-bg');
+      teamName.classList.add('dim-bg');
+      timer.classList.add('dim-bg');
+      details.classList.add('dim-bg');
+      dismissMsg.classList.add('dim-bg');
+
+      // Un-dim after 1.4 seconds
+      setTimeout(() => {
+          header.classList.remove('dim-bg');
+          teamName.classList.remove('dim-bg');
+          timer.classList.remove('dim-bg');
+          details.classList.remove('dim-bg');
+          dismissMsg.classList.remove('dim-bg');
+          finishMsg.style.display = 'none';
+      }, 1400);
+
+      // Auto-hide the entire splash screen after 9 seconds (1s for anim + 8s reading time)
       clearTimeout(splashTimeout);
       splashTimeout = setTimeout(() => {
           window.hideSplash();
-      }, 8000);
+      }, 9000);
   }
 
   onSnapshot(collection(db, "tracer_games"), (snapshot) => {
@@ -398,12 +441,14 @@
           let teams = [];
           snapshot.forEach(d => teams.push({ id: d.id, ...d.data() }));
           
+          // SPLASH SCREEN LOGIC
           let runningTeam = teams.find(t => t.raceStartTimestamp !== null);
           
           if (runningTeam) {
               currentlyRunningTeamId = runningTeam.id;
               showSplashRunning(runningTeam);
           } else if (currentlyRunningTeamId) {
+              // This triggers exactly when a team stops running!
               let recentlyFinishedTeam = teams.find(t => t.id === currentlyRunningTeamId && t.raceTimeMs !== null);
               if (recentlyFinishedTeam) {
                   showSplashFinished(recentlyFinishedTeam);
@@ -413,6 +458,7 @@
               currentlyRunningTeamId = null;
           }
 
+          // TABLE LOGIC
           teams.sort((a, b) => {
               if(a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
               if(a.totalTimeMs !== null) return -1;
