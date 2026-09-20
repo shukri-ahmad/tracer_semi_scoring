@@ -35,7 +35,7 @@
         .admin-link:hover { background: rgba(255,255,255,0.1); color: white;}
 
         .selector-box { background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-glow); text-align: center; margin-bottom: 20px;}
-        select { padding: 10px; font-size: 16px; font-family: 'Rajdhani', sans-serif; background: #0d1117; color: white; border: 1px solid var(--gold-accent); border-radius: 4px; width: 300px; }
+        select { padding: 10px; font-size: 16px; font-family: 'Rajdhani', sans-serif; background: #0d1117; color: white; border: 1px solid var(--gold-accent); border-radius: 4px; width: 300px; max-width: 100%;}
         
         .leaderboard-container { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px;}
@@ -72,8 +72,8 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(9, 12, 16, 0.98);
             backdrop-filter: blur(15px);
-            z-index: 9999; /* Forced above everything */
-            display: none; /* Triggered via JS */
+            z-index: 9999;
+            display: none; 
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -81,7 +81,7 @@
             cursor: pointer;
         }
         
-        /* Adjusted sizes to prevent overflow */
+        /* Base (Desktop) Sizes */
         .splash-header { font-family: 'Orbitron', sans-serif; font-size: 2.5em; color: #ff4757; letter-spacing: 5px; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);}
         .splash-team { font-family: 'Orbitron', sans-serif; font-size: 4em; font-weight: 900; color: white; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 30px rgba(255,255,255,0.3); line-height: 1;}
         .splash-timer { font-family: 'Orbitron', monospace; font-size: 8em; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 50px rgba(0,255,136,0.6); letter-spacing: -2px; line-height: 1; display: flex; justify-content: center;}
@@ -92,6 +92,42 @@
         .splash-obs { color: #f39c12 !important; }
         .splash-der { color: #e74c3c !important; }
         .click-dismiss { margin-top: 30px; color: #6e7681; font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 2px;}
+
+        /* --- RESPONSIVE MEDIA QUERIES FOR SMARTPHONES & TABLETS --- */
+        @media (max-width: 768px) {
+            .splash-header { font-size: 1.8em; letter-spacing: 3px; }
+            .splash-team { font-size: 2.5em; margin-bottom: 10px; }
+            .splash-timer { font-size: 4.5em; text-shadow: 0 0 30px rgba(0,255,136,0.4); }
+            .splash-details { font-size: 1.2em; padding: 10px 20px; margin-top: 20px; }
+            .splash-details span { margin: 0 8px; }
+        }
+
+        @media (max-width: 480px) {
+            .splash-header { font-size: 1.2em; letter-spacing: 2px; }
+            .splash-team { font-size: 2em; margin-bottom: 5px; }
+            .splash-timer { font-size: 3.2em; letter-spacing: -1px; }
+            .splash-details { font-size: 0.9em; padding: 10px; margin-top: 15px; }
+            .splash-details span { margin: 0 4px; }
+            .click-dismiss { font-size: 12px; margin-top: 15px; }
+            
+            /* Responsive adjustments for table on mobile */
+            .title-area h1 { font-size: 20px; }
+            .title-area img { height: 50px !important; }
+            th, td { padding: 8px; font-size: 14px; }
+            .team-col { font-size: 16px; padding-left: 5px !important; }
+            .rank-col { font-size: 16px; width: 40px; }
+            .time-box { font-size: 16px; }
+            .final-time-box { font-size: 18px; }
+        }
+
+        /* Responsive for mobile Landscape mode */
+        @media (max-height: 500px) {
+            .splash-header { font-size: 1.2em; margin-bottom: 5px; }
+            .splash-team { font-size: 2.2em; margin-bottom: 5px; }
+            .splash-timer { font-size: 3.5em; }
+            .splash-details { font-size: 1em; padding: 5px 20px; margin-top: 10px; }
+            .click-dismiss { margin-top: 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -101,7 +137,6 @@
     <div id="splashHeader" class="splash-header">🔥 LIVE RUN 🔥</div>
     <div id="splashTeamName" class="splash-team">TEAM ALPHA</div>
     
-    <!-- Timer wrapper inherits HTML fixed spacing -->
     <div id="splashTimer" class="splash-timer">00:00.00</div>
     
     <div id="splashDetails" class="splash-details">
@@ -135,20 +170,22 @@
     <h2 id="activeGameTitle" style="text-align: center; font-family: 'Orbitron', sans-serif; color: var(--gold-accent); margin-bottom: 5px;"></h2>
     <div id="gameStatusLabel" style="text-align: center; color: #8b949e; font-size: 14px; margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;">STATUS: IN PROGRESS</div>
     
-    <table>
-        <thead>
-            <tr>
-                <th class="rank-col">RANK</th>
-                <th style="text-align:left; padding-left: 20px;">TEAM</th>
-                <th>RAW TIME</th>
-                <th>MODIFIERS</th>
-                <th>FINAL SCORE</th>
-            </tr>
-        </thead>
-        <tbody id="leaderboardBody">
-            <!-- Data populated via JS -->
-        </tbody>
-    </table>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th class="rank-col">RANK</th>
+                    <th style="text-align:left; padding-left: 20px;">TEAM</th>
+                    <th>RAW TIME</th>
+                    <th>MODIFIERS</th>
+                    <th>FINAL SCORE</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+                <!-- Data populated via JS -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script type="module">
@@ -177,7 +214,6 @@
   let splashTimerInterval = null;
   let splashTimeout = null;
 
-  // This HTML formatter stops numbers from jumping!
   function formatTimeHtml(ms) {
       if(ms === null || ms === undefined || ms < 0) return "--:--.--";
       let date = new Date(ms);
@@ -221,7 +257,6 @@
       const updateTimer = () => {
           let elapsed = Date.now() - team.raceStartTimestamp;
           let adj = calculateAdjustedTime(elapsed, team.points, team.obstacles, team.derails);
-          // Apply formatTimeHtml to stop the jittering width
           document.getElementById('splashTimer').innerHTML = formatTimeHtml(adj);
       };
       
@@ -241,7 +276,8 @@
       // Final times injected as fixed HTML
       document.getElementById('splashTimer').innerHTML = formatTimeHtml(team.totalTimeMs);
       
-      document.getElementById('splashDetails').style.display = 'block';
+      // Changed to inline-block for better responsive wrapping
+      document.getElementById('splashDetails').style.display = 'inline-block';
       document.getElementById('spRaw').innerHTML = formatTimeHtml(team.raceTimeMs);
       document.getElementById('spPt').innerText = team.points || 0;
       document.getElementById('spObs').innerText = team.obstacles || 0;
@@ -302,9 +338,7 @@
           let teams = [];
           snapshot.forEach(d => teams.push({ id: d.id, ...d.data() }));
           
-          // ==============================
           // SPLASH SCREEN LOGIC
-          // ==============================
           let runningTeam = teams.find(t => t.raceStartTimestamp !== null);
           
           if (runningTeam) {
@@ -315,14 +349,12 @@
               if (recentlyFinishedTeam) {
                   showSplashFinished(recentlyFinishedTeam);
               } else {
-                  window.hideSplash(); // Admin reset the runner
+                  window.hideSplash(); 
               }
               currentlyRunningTeamId = null;
           }
 
-          // ==============================
           // TABLE LOGIC
-          // ==============================
           teams.sort((a, b) => {
               if(a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
               if(a.totalTimeMs !== null) return -1;
