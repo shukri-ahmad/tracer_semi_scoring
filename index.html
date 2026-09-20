@@ -67,45 +67,50 @@
         @keyframes pulse-bronze { 0% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } 50% { box-shadow: inset 0 0 30px rgba(205,127,50,0.4); } 100% { box-shadow: inset 0 0 10px rgba(205,127,50,0.1); } }
         .medal-icon { margin-left: 10px; font-size: 24px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
 
-        /* LIVE RACE SPLASH SCREEN CSS */
+        /* FIXED SPLASH SCREEN CSS */
         .splash-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(9, 12, 16, 0.95);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 12, 16, 0.98);
             backdrop-filter: blur(15px);
-            z-index: 1000;
-            display: none; /* Hidden by default */
+            z-index: 9999; /* Forced above everything */
+            display: none; /* Triggered via JS */
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            animation: fadeIn 0.3s ease-out;
+            cursor: pointer;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        .splash-header { font-family: 'Orbitron', sans-serif; font-size: 4em; color: #ff4757; letter-spacing: 5px; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);}
-        .splash-team { font-family: 'Orbitron', sans-serif; font-size: 7em; font-weight: 900; color: white; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 30px rgba(255,255,255,0.3); line-height: 1;}
-        .splash-timer { font-family: 'Orbitron', monospace; font-size: 13em; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 50px rgba(0,255,136,0.6); letter-spacing: -2px; line-height: 1;}
+        /* Adjusted sizes to prevent overflow */
+        .splash-header { font-family: 'Orbitron', sans-serif; font-size: 2.5em; color: #ff4757; letter-spacing: 5px; margin-bottom: 10px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);}
+        .splash-team { font-family: 'Orbitron', sans-serif; font-size: 4em; font-weight: 900; color: white; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 30px rgba(255,255,255,0.3); line-height: 1;}
+        .splash-timer { font-family: 'Orbitron', monospace; font-size: 8em; font-weight: 900; color: var(--neon-green); text-shadow: 0 0 50px rgba(0,255,136,0.6); letter-spacing: -2px; line-height: 1; display: flex; justify-content: center;}
         
-        .splash-details { margin-top: 40px; font-size: 2.2em; color: #8b949e; font-family: 'Orbitron', sans-serif; display: none; background: rgba(0,0,0,0.5); padding: 15px 40px; border-radius: 12px; border: 1px solid #30363d;}
+        .splash-details { margin-top: 30px; font-size: 1.8em; color: #8b949e; font-family: 'Orbitron', sans-serif; display: none; background: rgba(0,0,0,0.5); padding: 15px 40px; border-radius: 12px; border: 1px solid #30363d;}
         .splash-details span { color: white; margin: 0 15px; font-weight: bold;}
         .splash-pts { color: #2ecc71 !important; }
         .splash-obs { color: #f39c12 !important; }
         .splash-der { color: #e74c3c !important; }
+        .click-dismiss { margin-top: 30px; color: #6e7681; font-family: 'Rajdhani', sans-serif; font-size: 16px; letter-spacing: 2px;}
     </style>
 </head>
 <body>
 
-<!-- SPLASH SCREEN OVERLAY -->
-<div id="splashScreen" class="splash-overlay">
+<!-- FIXED SPLASH SCREEN OVERLAY (Click to dismiss early) -->
+<div id="splashScreen" class="splash-overlay" onclick="hideSplash()">
     <div id="splashHeader" class="splash-header">🔥 LIVE RUN 🔥</div>
     <div id="splashTeamName" class="splash-team">TEAM ALPHA</div>
+    
+    <!-- Timer wrapper inherits HTML fixed spacing -->
     <div id="splashTimer" class="splash-timer">00:00.00</div>
+    
     <div id="splashDetails" class="splash-details">
         RAW: <span id="spRaw">00:00.00</span> | 
         PT: <span id="spPt" class="splash-pts">0</span> | 
         OBS: <span id="spObs" class="splash-obs">0</span> | 
         DER: <span id="spDer" class="splash-der">0</span>
     </div>
+    <div class="click-dismiss">( CLICK ANYWHERE TO DISMISS )</div>
 </div>
 
 <div class="header">
@@ -167,11 +172,12 @@
   let liveTimerIntervals = {};
   let isRaceLockedGlobal = false;
   
-  // Splash Screen Tracking variables
+  // Splash Screen Tracking
   let currentlyRunningTeamId = null;
   let splashTimerInterval = null;
   let splashTimeout = null;
 
+  // This HTML formatter stops numbers from jumping!
   function formatTimeHtml(ms) {
       if(ms === null || ms === undefined || ms < 0) return "--:--.--";
       let date = new Date(ms);
@@ -184,16 +190,6 @@
       return html;
   }
 
-  // Used specifically for the huge splash screen timer (no HTML spans required)
-  function formatTimePlain(ms) {
-      if(ms === null || ms === undefined || ms < 0) return "--:--.--";
-      let date = new Date(ms);
-      let m = String(date.getUTCMinutes()).padStart(2, '0');
-      let s = String(date.getUTCSeconds()).padStart(2, '0');
-      let msStr = String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0');
-      return `${m}:${s}.${msStr}`;
-  }
-
   function calculateAdjustedTime(rawTimeMs, points, obstacles, derails) {
       if (rawTimeMs === null || rawTimeMs === undefined) return null;
       let pts = points || 0;
@@ -203,10 +199,17 @@
       return Math.max(0, adjusted);
   }
 
-  // SPLASH SCREEN CONTROLLERS
+  // Make hideSplash globally available for the onclick event
+  window.hideSplash = function() {
+      document.getElementById('splashScreen').style.display = 'none';
+      clearInterval(splashTimerInterval);
+      clearTimeout(splashTimeout);
+  }
+
   function showSplashRunning(team) {
       clearTimeout(splashTimeout);
       document.getElementById('splashScreen').style.display = 'flex';
+      
       document.getElementById('splashHeader').innerText = '🔥 LIVE RUN 🔥';
       document.getElementById('splashHeader').style.color = '#ff4757';
       document.getElementById('splashHeader').style.textShadow = '0 0 20px rgba(255, 71, 87, 0.4)';
@@ -214,42 +217,40 @@
       document.getElementById('splashDetails').style.display = 'none';
 
       clearInterval(splashTimerInterval);
-      splashTimerInterval = setInterval(() => {
+      
+      const updateTimer = () => {
           let elapsed = Date.now() - team.raceStartTimestamp;
           let adj = calculateAdjustedTime(elapsed, team.points, team.obstacles, team.derails);
-          document.getElementById('splashTimer').innerText = formatTimePlain(adj);
-      }, 47); // slightly off 50 to prevent frame locking
+          // Apply formatTimeHtml to stop the jittering width
+          document.getElementById('splashTimer').innerHTML = formatTimeHtml(adj);
+      };
+      
+      updateTimer(); // Execute instantly
+      splashTimerInterval = setInterval(updateTimer, 50);
   }
 
   function showSplashFinished(team) {
       clearInterval(splashTimerInterval);
-      
       document.getElementById('splashScreen').style.display = 'flex';
+      
       document.getElementById('splashHeader').innerText = '🏁 RACE FINISHED 🏁';
       document.getElementById('splashHeader').style.color = 'var(--gold-accent)';
       document.getElementById('splashHeader').style.textShadow = '0 0 20px rgba(230, 168, 0, 0.4)';
       document.getElementById('splashTeamName').innerText = team.name;
       
-      // Show Final Adjusted Time
-      document.getElementById('splashTimer').innerText = formatTimePlain(team.totalTimeMs);
+      // Final times injected as fixed HTML
+      document.getElementById('splashTimer').innerHTML = formatTimeHtml(team.totalTimeMs);
       
-      // Show Breakdown Details
       document.getElementById('splashDetails').style.display = 'block';
-      document.getElementById('spRaw').innerText = formatTimePlain(team.raceTimeMs);
+      document.getElementById('spRaw').innerHTML = formatTimeHtml(team.raceTimeMs);
       document.getElementById('spPt').innerText = team.points || 0;
       document.getElementById('spObs').innerText = team.obstacles || 0;
       document.getElementById('spDer').innerText = team.derails || 0;
 
-      // Automatically hide after 8 seconds to show the leaderboard again
       clearTimeout(splashTimeout);
       splashTimeout = setTimeout(() => {
-          hideSplash();
+          window.hideSplash();
       }, 8000);
-  }
-
-  function hideSplash() {
-      document.getElementById('splashScreen').style.display = 'none';
-      clearInterval(splashTimerInterval);
   }
 
   onSnapshot(collection(db, "tracer_games"), (snapshot) => {
@@ -270,7 +271,7 @@
   window.loadGameData = function(gameId) {
       if(!gameId) {
           document.getElementById("leaderboardContainer").style.display = "none";
-          hideSplash();
+          window.hideSplash();
           return;
       }
       
@@ -279,7 +280,7 @@
       if(currentUnsubGame) currentUnsubGame();
       if(currentUnsubTeams) currentUnsubTeams();
       for(let key in liveTimerIntervals) clearInterval(liveTimerIntervals[key]);
-      hideSplash();
+      window.hideSplash();
 
       currentUnsubGame = onSnapshot(doc(db, "tracer_games", gameId), (docSnap) => {
           const game = docSnap.data();
@@ -301,30 +302,27 @@
           let teams = [];
           snapshot.forEach(d => teams.push({ id: d.id, ...d.data() }));
           
-          // ==========================================
-          // SPLASH SCREEN LOGIC TRIGGER
-          // ==========================================
+          // ==============================
+          // SPLASH SCREEN LOGIC
+          // ==============================
           let runningTeam = teams.find(t => t.raceStartTimestamp !== null);
           
           if (runningTeam) {
-              // A team is currently racing
               currentlyRunningTeamId = runningTeam.id;
               showSplashRunning(runningTeam);
           } else if (currentlyRunningTeamId) {
-              // A team WAS racing, but just stopped. Check if they have a final time.
               let recentlyFinishedTeam = teams.find(t => t.id === currentlyRunningTeamId && t.raceTimeMs !== null);
               if (recentlyFinishedTeam) {
                   showSplashFinished(recentlyFinishedTeam);
               } else {
-                  // The admin hit "Redo" or reset them instead of stopping
-                  hideSplash();
+                  window.hideSplash(); // Admin reset the runner
               }
               currentlyRunningTeamId = null;
           }
 
-          // ==========================================
-          // LEADERBOARD RENDER LOGIC
-          // ==========================================
+          // ==============================
+          // TABLE LOGIC
+          // ==============================
           teams.sort((a, b) => {
               if(a.totalTimeMs !== null && b.totalTimeMs !== null) return a.totalTimeMs - b.totalTimeMs;
               if(a.totalTimeMs !== null) return -1;
